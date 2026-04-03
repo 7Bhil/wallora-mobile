@@ -1,32 +1,98 @@
 import React, { useEffect, useState, useContext } from 'react';
 import {
   View, Text, ScrollView, Image, TouchableOpacity, 
-  ActivityIndicator, FlatList, Dimensions
+  ActivityIndicator, FlatList, Dimensions, Alert, TextInput
 } from 'react-native';
+import Feather from '@expo/vector-icons/Feather';
 import { AuthContext } from '../context/AuthContext';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://10.34.132.51:3000';
 const SCREEN_W = Dimensions.get('window').width;
 
 export default function ProfileScreen({ setTab }) {
-  const { token, user, logout } = useContext(AuthContext);
+  const { token, user, logout, login } = useContext(AuthContext);
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('wallpapers');
+  const [isEditing, setIsEditing] = useState(false);
+  const [newUsername, setNewUsername] = useState(user?.username || '');
 
   const optimizeImage = (url) => {
     if (!url || !url.includes('cloudinary.com')) return url;
     return url.replace('/upload/', '/upload/q_auto,f_auto,w_600/');
   };
 
-  useEffect(() => {
+  const fetchProfile = () => {
+    setLoading(true);
     fetch(`${API_URL}/api/users/profile`, {
       headers: { Authorization: `Bearer ${token}` }
     })
       .then(r => r.json())
-      .then(data => { setProfile(data); setLoading(false); })
+      .then(data => { 
+        setProfile(data); 
+        setLoading(false); 
+        setNewUsername(data.user.username);
+      })
       .catch(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    fetchProfile();
   }, [token]);
+
+  const handleUpdateProfile = async () => {
+    if (!newUsername.trim()) return;
+    try {
+      const res = await fetch(`${API_URL}/api/users/profile`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ username: newUsername })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        await login(token, { ...user, username: newUsername });
+        setIsEditing(false);
+        fetchProfile();
+        Alert.alert('Succès', 'Profil mis à jour !');
+      } else {
+        Alert.alert('Erreur', data.error || 'Mise à jour échouée');
+      }
+    } catch (e) {
+      Alert.alert('Erreur', 'Connexion impossible');
+    }
+  };
+
+  const handleDeleteWallpaper = (id) => {
+    Alert.alert(
+      'Supprimer',
+      'Es-tu sûr de vouloir supprimer ce fond d\'écran ?',
+      [
+        { text: 'Annuler', style: 'cancel' },
+        {
+          text: 'Supprimer',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const res = await fetch(`${API_URL}/api/wallpapers/${id}`, {
+                method: 'DELETE',
+                headers: { Authorization: `Bearer ${token}` }
+              });
+              if (res.ok) {
+                fetchProfile();
+              } else {
+                Alert.alert('Erreur', 'Suppression échouée');
+              }
+            } catch (e) {
+              Alert.alert('Erreur', 'Connexion impossible');
+            }
+          }
+        }
+      ]
+    );
+  };
 
   if (loading) return (
     <View style={{ flex: 1, backgroundColor: '#0d0914', justifyContent: 'center', alignItems: 'center' }}>
@@ -42,7 +108,7 @@ export default function ProfileScreen({ setTab }) {
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Top Header */}
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingTop: 60, paddingBottom: 10 }}>
-          <View style={{ width: 24 }} /> {/* Spacer */}
+          <View style={{ width: 24 }} />
           <Text style={{ color: '#fff', fontWeight: '900', fontSize: 16, letterSpacing: 3 }}>WALLORA</Text>
           <TouchableOpacity onPress={logout}>
             <Text style={{ color: '#ef4444', fontSize: 13, fontWeight: '700' }}>LOGOUT</Text>
@@ -63,9 +129,32 @@ export default function ProfileScreen({ setTab }) {
             </View>
           </View>
 
-          <Text style={{ color: '#fff', fontSize: 22, fontWeight: '900', marginTop: 10 }}>
-            {user?.username || 'Curator'}
-          </Text>
+          {isEditing ? (
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 10, gap: 10 }}>
+              <TextInput
+                value={newUsername}
+                onChangeText={setNewUsername}
+                style={{ backgroundColor: '#1a0a2e', color: '#fff', paddingHorizontal: 15, paddingVertical: 8, borderRadius: 10, borderWidth: 1, borderColor: '#a855f7', minWidth: 150 }}
+                autoFocus
+              />
+              <TouchableOpacity onPress={handleUpdateProfile} style={{ backgroundColor: '#a855f7', padding: 8, borderRadius: 8 }}>
+                <Feather name="check" size={20} color="#fff" />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => setIsEditing(false)} style={{ backgroundColor: '#374151', padding: 8, borderRadius: 8 }}>
+                <Feather name="x" size={20} color="#fff" />
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 10, gap: 8 }}>
+              <Text style={{ color: '#fff', fontSize: 22, fontWeight: '900' }}>
+                {user?.username || 'Curator'}
+              </Text>
+              <TouchableOpacity onPress={() => setIsEditing(true)}>
+                <Feather name="edit-2" size={16} color="#a855f7" />
+              </TouchableOpacity>
+            </View>
+          )}
+          
           <Text style={{ color: '#6b7280', fontSize: 13, marginTop: 2, fontWeight: '500' }}>@{(user?.username || 'curator').toLowerCase().replace(/ /g, '_')}</Text>
 
           <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8, backgroundColor: '#1a0a2e', paddingHorizontal: 12, paddingVertical: 5, borderRadius: 99, borderWidth: 1, borderColor: '#3b1d6e' }}>
@@ -110,10 +199,16 @@ export default function ProfileScreen({ setTab }) {
             <View key={wp._id} style={{ width: (SCREEN_W - 44) / 2, borderRadius: 20, overflow: 'hidden', backgroundColor: '#1a0a2e', aspectRatio: 0.75, position: 'relative' }}>
               <Image source={{ uri: optimizeImage(wp.url) }} style={{ width: '100%', height: '100%' }} resizeMode="cover" />
               <View style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.3)' }} />
-              <View style={{ position: 'absolute', top: 8, left: 8, backgroundColor: 'rgba(0,0,0,0.6)', borderRadius: 20, paddingHorizontal: 8, paddingVertical: 3 }}>
-                <Text style={{ color: '#9ca3af', fontSize: 8, fontWeight: '700', letterSpacing: 1 }}>RANK #{index + 1}</Text>
-              </View>
-              <View style={{ position: 'absolute', bottom: 10, left: 10, right: 10 }}>
+                <View className="absolute top-2 left-2 bg-black/80 px-2 py-1 rounded-md z-10 border border-white/5">
+                  <Text className="text-white font-black text-[8px] tracking-widest">#{index + 1}</Text>
+                </View>
+                <TouchableOpacity 
+                   onPress={() => handleDeleteWallpaper(wp._id)}
+                   style={{ position: 'absolute', top: 8, right: 8, backgroundColor: 'rgba(239, 68, 68, 0.8)', borderRadius: 10, padding: 6, zIndex: 20 }}
+                >
+                  <Feather name="trash-2" size={14} color="#fff" />
+                </TouchableOpacity>
+                <View style={{ position: 'absolute', bottom: 10, left: 10, right: 10 }}>
                 <Text style={{ color: '#fff', fontWeight: '900', fontSize: 13, marginBottom: 2 }}>Image #{index + 1}</Text>
                 <View style={{ height: 3, backgroundColor: '#ffffff20', borderRadius: 10, overflow: 'hidden' }}>
                   <View style={{ height: '100%', width: '78%', backgroundColor: '#a855f7', borderRadius: 10 }} />
