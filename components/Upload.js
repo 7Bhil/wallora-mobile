@@ -1,90 +1,158 @@
 import React, { useState, useContext } from 'react';
-import { View, Text, TouchableOpacity, Image, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, Image, ActivityIndicator } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { AuthContext } from '../src/context/AuthContext';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://10.0.2.2:3000';
 
+const SUGGESTED_TAGS = ['#Neon', '#Cyber', '#Dark', '#4K', '#Space', '#Nature'];
+
 export default function Upload() {
   const [image, setImage] = useState(null);
+  const [title, setTitle] = useState('');
+  const [tags, setTags] = useState(['#Neon', '#Cyber']);
+  const [tagInput, setTagInput] = useState('');
   const [uploading, setUploading] = useState(false);
   const [message, setMessage] = useState('');
+  const [msgType, setMsgType] = useState(''); // 'success' | 'error'
   const { token } = useContext(AuthContext);
 
   const pickImage = async () => {
     setMessage('');
-    let result = await ImagePicker.launchImageLibraryAsync({
+    const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true, // Permet le crop carré si l'utilisateur le veut
-      quality: 0.8,
+      allowsEditing: true, quality: 0.8,
     });
+    if (!result.canceled) setImage(result.assets[0]);
+  };
 
-    if (!result.canceled) {
-      setImage(result.assets[0]);
-    }
+  const removeTag = (t) => setTags(tags.filter(x => x !== t));
+  const addTag = (t) => {
+    if (!t.trim()) return;
+    const tag = t.startsWith('#') ? t : `#${t}`;
+    if (!tags.includes(tag)) setTags([...tags, tag]);
+    setTagInput('');
   };
 
   const uploadImage = async () => {
-    if (!image) return setMessage('Aucune image sélectionnée.');
-    
-    setUploading(true);
-    setMessage('');
-    
+    if (!image) { setMsgType('error'); setMessage('Please select an image.'); return; }
+    setUploading(true); setMessage('');
+
     const formData = new FormData();
     const filename = image.uri.split('/').pop();
     const match = /\.(\w+)$/.exec(filename);
-    const type = match ? `image/${match[1]}` : `image`;
-
-    formData.append('image', {
-      uri: image.uri,
-      name: filename,
-      type
-    });
+    formData.append('image', { uri: image.uri, name: filename, type: match ? `image/${match[1]}` : 'image' });
 
     try {
       const res = await fetch(`${API_URL}/api/wallpapers/upload`, {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        },
+        headers: { 'Authorization': `Bearer ${token}` },
         body: formData,
       });
-
       if (res.ok) {
-        setMessage('Succès ! Fond d\'écran envoyé. 🚀');
-        setImage(null);
+        setMsgType('success'); setMessage('Published to the Arena! 🚀');
+        setImage(null); setTitle(''); setTags(['#Neon', '#Cyber']);
       } else {
-        const errorData = await res.json();
-        setMessage('Erreur: ' + (errorData.error || 'Impossible d\'uploader'));
+        const err = await res.json();
+        setMsgType('error'); setMessage(err.error || 'Upload failed.');
       }
-    } catch (e) {
-      setMessage('Erreur d\'accès au serveur.');
-    }
+    } catch { setMsgType('error'); setMessage('Network error.'); }
     setUploading(false);
   };
 
   return (
-    <View className="flex-1 justify-center items-center bg-gray-900 p-6">
-      <Text className="text-2xl font-extrabold text-white mb-2">New Contribution</Text>
-      <Text className="text-gray-400 text-center mb-8 font-medium">Select a high-quality wallpaper from your camera roll.</Text>
-      
-      {message ? <Text className="bg-purple-900/40 border border-purple-500/50 text-purple-300 font-bold p-3 rounded-lg text-center w-full mb-6 relative z-50">{message}</Text> : null}
+    <ScrollView style={{ flex: 1, backgroundColor: '#0d0914' }} contentContainerStyle={{ paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
+      {/* Header */}
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingTop: 20 }}>
+        <Text style={{ color: '#fff', fontWeight: '900', fontSize: 16, letterSpacing: 2 }}>Studio</Text>
+        <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: '#1a0a2e', borderWidth: 1, borderColor: '#3b1d6e', alignItems: 'center', justifyContent: 'center' }}>
+          <Text style={{ fontSize: 16 }}>👤</Text>
+        </View>
+      </View>
 
-      {image ? (
-         <View className="items-center w-full">
-            <Image source={{ uri: image.uri }} className="w-full h-[350px] rounded-2xl mb-6 bg-black/40" resizeMode="cover" />
-            <TouchableOpacity onPress={uploadImage} disabled={uploading} className="bg-purple-600 w-full py-4 flex flex-row justify-center items-center rounded-xl shadow-[0_0_15px_rgba(168,85,247,0.4)]">
-              {uploading ? <ActivityIndicator color="white" /> : <Text className="text-white font-bold text-lg">Publish Wallpaper</Text>}
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => setImage(null)} className="mt-4 p-2">
-              <Text className="text-gray-500 font-bold text-sm hover:text-gray-400">Cancel & choose another</Text>
-            </TouchableOpacity>
-         </View>
-      ) : (
-        <TouchableOpacity onPress={pickImage} className="bg-emerald-600 w-full py-5 rounded-xl shadow-[0_0_15px_rgba(5,150,105,0.4)] items-center">
-          <Text className="text-white font-bold text-lg text-center">Open Photo Gallery</Text>
+      <View style={{ paddingHorizontal: 20, paddingTop: 24 }}>
+        <Text style={{ color: '#9ca3af', fontSize: 10, fontWeight: '700', letterSpacing: 2, textTransform: 'uppercase', marginBottom: 4 }}>New Submission</Text>
+        <Text style={{ color: '#fff', fontWeight: '900', fontSize: 28, letterSpacing: -0.5 }}>
+          Share your <Text style={{ color: '#a855f7' }}>Vision</Text><Text style={{ color: '#a855f7' }}>.</Text>
+        </Text>
+      </View>
+
+      {/* Drop Zone */}
+      <TouchableOpacity onPress={pickImage} style={{ marginHorizontal: 20, marginTop: 20, borderRadius: 20, borderWidth: 1.5, borderColor: '#2d1a4e', borderStyle: 'dashed', overflow: 'hidden', aspectRatio: 16/9 }}>
+        {image ? (
+          <Image source={{ uri: image.uri }} style={{ width: '100%', height: '100%' }} resizeMode="cover" />
+        ) : (
+          <View style={{ flex: 1, backgroundColor: '#120820', alignItems: 'center', justifyContent: 'center' }}>
+            <View style={{ width: 52, height: 52, borderRadius: 16, backgroundColor: '#2d1a4e', alignItems: 'center', justifyContent: 'center', marginBottom: 10 }}>
+              <Text style={{ fontSize: 24 }}>📁</Text>
+            </View>
+            <Text style={{ color: '#fff', fontWeight: '800', fontSize: 15 }}>Tap to Upload</Text>
+            <Text style={{ color: '#6b7280', fontSize: 11, marginTop: 4 }}>Supports PNG, JPG, WEBP</Text>
+          </View>
+        )}
+      </TouchableOpacity>
+
+      <View style={{ paddingHorizontal: 20, marginTop: 20, gap: 16 }}>
+        {/* Title */}
+        <View>
+          <Text style={{ color: '#6b7280', fontSize: 9, fontWeight: '700', letterSpacing: 2, textTransform: 'uppercase', marginBottom: 8 }}>Wallpaper Title</Text>
+          <TextInput
+            value={title} onChangeText={setTitle}
+            placeholder="Celestial Resonance"
+            placeholderTextColor="#374151"
+            style={{ backgroundColor: '#120820', borderWidth: 1, borderColor: '#1f0f35', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 12, color: '#fff', fontSize: 14, fontWeight: '600' }}
+          />
+        </View>
+
+        {/* Tags */}
+        <View>
+          <Text style={{ color: '#6b7280', fontSize: 9, fontWeight: '700', letterSpacing: 2, textTransform: 'uppercase', marginBottom: 8 }}>Tags (separated by space)</Text>
+          <View style={{ backgroundColor: '#120820', borderWidth: 1, borderColor: '#1f0f35', borderRadius: 12, padding: 12, flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+            {tags.map(t => (
+              <TouchableOpacity key={t} onPress={() => removeTag(t)} style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#2d1a4e', borderRadius: 99, paddingHorizontal: 10, paddingVertical: 5 }}>
+                <Text style={{ color: '#c084fc', fontSize: 11, fontWeight: '700' }}>{t}</Text>
+                <Text style={{ color: '#7c3aed', fontSize: 10 }}>×</Text>
+              </TouchableOpacity>
+            ))}
+            <TextInput
+              value={tagInput} onChangeText={setTagInput}
+              onSubmitEditing={() => addTag(tagInput.trim())}
+              placeholder="Add more..."
+              placeholderTextColor="#374151"
+              style={{ color: '#9ca3af', fontSize: 12, minWidth: 80, paddingVertical: 4 }}
+            />
+          </View>
+        </View>
+
+        {/* Status */}
+        {message ? (
+          <View style={{ backgroundColor: msgType === 'success' ? '#083a1e' : '#3a0808', borderWidth: 1, borderColor: msgType === 'success' ? '#166534' : '#7f1d1d', borderRadius: 12, padding: 14 }}>
+            <Text style={{ color: msgType === 'success' ? '#4ade80' : '#f87171', fontWeight: '700', fontSize: 13 }}>{message}</Text>
+          </View>
+        ) : null}
+
+        {/* Submit Button */}
+        <TouchableOpacity
+          onPress={uploadImage} disabled={uploading || !image}
+          style={{
+            backgroundColor: !image || uploading ? '#1a0a2e' : '#7c3aed',
+            borderRadius: 16, paddingVertical: 16,
+            flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
+            shadowColor: '#a855f7', shadowOffset: { width: 0, height: 4 }, shadowOpacity: image && !uploading ? 0.4 : 0, shadowRadius: 12, elevation: image && !uploading ? 8 : 0
+          }}
+        >
+          {uploading ? <ActivityIndicator color="#fff" /> : (
+            <>
+              <Text style={{ color: !image ? '#4b5563' : '#fff', fontWeight: '900', fontSize: 15, letterSpacing: 0.5 }}>Publish to Arena</Text>
+              {image && <Text style={{ color: '#fff', fontSize: 16 }}>→</Text>}
+            </>
+          )}
         </TouchableOpacity>
-      )}
-    </View>
+
+        <Text style={{ color: '#374151', fontSize: 10, textAlign: 'center', lineHeight: 16 }}>
+          By publishing, you agree that this artwork is your own original creation and follows the Wallora community standards.
+        </Text>
+      </View>
+    </ScrollView>
   );
 }
