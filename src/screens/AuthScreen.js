@@ -11,6 +11,7 @@ export default function AuthScreen() {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   
@@ -52,7 +53,7 @@ export default function AuthScreen() {
   return (
     <View className="flex-1 bg-gray-900 justify-center p-6">
       <View className="bg-gray-800 p-6 rounded-3xl border border-gray-700 shadow-2xl">
-        <Text className="text-3xl font-extrabold text-transparent text-purple-400 text-center mb-2">Wallora</Text>
+        <Text className="text-3xl font-extrabold text-white text-center mb-2 tracking-widest uppercase">Wallora</Text>
         <Text className="text-gray-400 text-center mb-8 font-medium">
           {isLogin ? 'Welcome back, curator.' : 'Join the digital circle.'}
         </Text>
@@ -73,12 +74,20 @@ export default function AuthScreen() {
           autoCapitalize="none"
           value={email} onChangeText={setEmail}
         />
-        <TextInput 
-          className="bg-black/30 text-white px-4 py-3 rounded-xl mb-6 border border-white/5"
-          placeholder="Password" placeholderTextColor="#6b7280"
-          secureTextEntry
-          value={password} onChangeText={setPassword}
-        />
+        <View className="relative w-full mb-6">
+          <TextInput 
+            className="bg-black/30 text-white px-4 py-3 rounded-xl border border-white/5 w-full flex-1 pr-12"
+            placeholder="Password" placeholderTextColor="#6b7280"
+            secureTextEntry={!showPassword}
+            value={password} onChangeText={setPassword}
+          />
+          <TouchableOpacity 
+            onPress={() => setShowPassword(!showPassword)}
+            className="absolute right-0 h-full px-4 justify-center"
+          >
+            <Text className="text-gray-400 text-lg">{showPassword ? '🫣' : '👁️'}</Text>
+          </TouchableOpacity>
+        </View>
 
         <TouchableOpacity 
           onPress={handleSubmit} disabled={loading}

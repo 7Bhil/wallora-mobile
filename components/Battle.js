@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, ActivityIndicator, Dimensions } from 'react-native';
-import FastImage from 'react-native-fast-image';
+import { View, Text, TouchableOpacity, ActivityIndicator, Dimensions, Image } from 'react-native';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://10.0.2.2:3000';
 const SCREEN_H = Dimensions.get('window').height;

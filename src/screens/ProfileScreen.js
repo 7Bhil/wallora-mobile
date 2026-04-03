@@ -4,7 +4,6 @@ import {
   ActivityIndicator, FlatList, Dimensions
 } from 'react-native';
 import { AuthContext } from '../context/AuthContext';
-import { Link } from 'expo-router';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://10.0.2.2:3000';
 const SCREEN_W = Dimensions.get('window').width;

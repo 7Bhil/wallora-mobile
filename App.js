@@ -1,6 +1,8 @@
+import './global.css';
 import { useState, useContext } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { Text, View, TouchableOpacity, SafeAreaView, ActivityIndicator } from 'react-native';
+import Feather from '@expo/vector-icons/Feather';
 import Battle from './components/Battle';
 import Leaderboard from './components/Leaderboard';
 import Upload from './components/Upload';
@@ -9,10 +11,10 @@ import ProfileScreen from './src/screens/ProfileScreen';
 import { AuthProvider, AuthContext } from './src/context/AuthContext';
 
 const TABS = [
-  { id: 'battle',   label: 'Arena',     icon: '⚔️' },
-  { id: 'discover', label: 'Discovery', icon: '🔭' },
-  { id: 'upload',   label: 'Studio',    icon: '🎨' },
-  { id: 'profile',  label: 'Profile',   icon: '👤' },
+  { id: 'battle',   label: 'Arena',     icon: 'crosshairs' },
+  { id: 'discover', label: 'Discovery', icon: 'compass' },
+  { id: 'upload',   label: 'Studio',    icon: 'aperture' },
+  { id: 'profile',  label: 'Profile',   icon: 'user' },
 ];
 
 function MainApp() {
@@ -65,7 +67,7 @@ function MainApp() {
                 paddingVertical: 6,
               }}
             >
-              <Text style={{ fontSize: 18, marginBottom: 2 }}>{t.icon}</Text>
+              <Feather name={t.icon} size={20} color={isActive ? '#c084fc' : '#6b7280'} style={{ marginBottom: 4 }} />
               <Text style={{
                 color: isActive ? '#c084fc' : '#6b7280',
                 fontSize: 9,
