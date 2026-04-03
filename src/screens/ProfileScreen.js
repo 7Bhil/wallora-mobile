@@ -5,10 +5,10 @@ import {
 } from 'react-native';
 import { AuthContext } from '../context/AuthContext';
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://10.0.2.2:3000';
+const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://10.34.132.51:3000';
 const SCREEN_W = Dimensions.get('window').width;
 
-export default function ProfileScreen() {
+export default function ProfileScreen({ setTab }) {
   const { token, user, logout } = useContext(AuthContext);
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -42,12 +42,10 @@ export default function ProfileScreen() {
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Top Header */}
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingTop: 60, paddingBottom: 10 }}>
-          <TouchableOpacity>
-            <Text style={{ color: '#9ca3af', fontSize: 20 }}>☰</Text>
-          </TouchableOpacity>
+          <View style={{ width: 24 }} /> {/* Spacer */}
           <Text style={{ color: '#fff', fontWeight: '900', fontSize: 16, letterSpacing: 3 }}>WALLORA</Text>
-          <TouchableOpacity>
-            <Text style={{ color: '#9ca3af', fontSize: 18 }}>⚙️</Text>
+          <TouchableOpacity onPress={logout}>
+            <Text style={{ color: '#ef4444', fontSize: 13, fontWeight: '700' }}>LOGOUT</Text>
           </TouchableOpacity>
         </View>
 
@@ -126,7 +124,10 @@ export default function ProfileScreen() {
           ))}
 
           {/* Upload New Entry Button */}
-          <TouchableOpacity style={{ width: (SCREEN_W - 44) / 2, borderRadius: 20, borderWidth: 1.5, borderColor: '#2d1a4e', borderStyle: 'dashed', aspectRatio: 0.75, alignItems: 'center', justifyContent: 'center', backgroundColor: '#0d0914' }}>
+          <TouchableOpacity 
+            onPress={() => setTab && setTab('upload')}
+            style={{ width: (SCREEN_W - 44) / 2, borderRadius: 20, borderWidth: 1.5, borderColor: '#2d1a4e', borderStyle: 'dashed', aspectRatio: 0.75, alignItems: 'center', justifyContent: 'center', backgroundColor: '#0d0914' }}
+          >
             <View style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: '#1a0a2e', borderWidth: 1, borderColor: '#3b1d6e', alignItems: 'center', justifyContent: 'center', marginBottom: 8 }}>
               <Text style={{ color: '#7c3aed', fontSize: 22, fontWeight: '300' }}>+</Text>
             </View>

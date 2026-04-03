@@ -38,7 +38,7 @@ function MainApp() {
         {tab === 'battle'      && <Battle />}
         {tab === 'upload'      && <Upload />}
         {tab === 'leaderboard' && <Leaderboard />}
-        {tab === 'profile'     && <ProfileScreen />}
+        {tab === 'profile'     && <ProfileScreen setTab={setTab} />}
       </View>
 
       {/* Bottom Navigation */}

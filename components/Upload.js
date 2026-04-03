@@ -1,9 +1,10 @@
 import React, { useState, useContext } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, Image, ActivityIndicator } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
+import Feather from '@expo/vector-icons/Feather';
 import { AuthContext } from '../src/context/AuthContext';
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://10.0.2.2:3000';
+const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://10.34.132.51:3000';
 
 const SUGGESTED_TAGS = ['#Neon', '#Cyber', '#Dark', '#4K', '#Space', '#Nature'];
 
@@ -21,7 +22,7 @@ export default function Upload() {
     setMessage('');
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true, quality: 0.8,
+      allowsEditing: false, quality: 0.8,
     });
     if (!result.canceled) setImage(result.assets[0]);
   };
@@ -66,7 +67,7 @@ export default function Upload() {
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingTop: 20 }}>
         <Text style={{ color: '#fff', fontWeight: '900', fontSize: 16, letterSpacing: 2 }}>Studio</Text>
         <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: '#1a0a2e', borderWidth: 1, borderColor: '#3b1d6e', alignItems: 'center', justifyContent: 'center' }}>
-          <Text style={{ fontSize: 16 }}>👤</Text>
+          <Feather name="user" size={16} color="#c084fc" />
         </View>
       </View>
 
@@ -84,7 +85,7 @@ export default function Upload() {
         ) : (
           <View style={{ flex: 1, backgroundColor: '#120820', alignItems: 'center', justifyContent: 'center' }}>
             <View style={{ width: 52, height: 52, borderRadius: 16, backgroundColor: '#2d1a4e', alignItems: 'center', justifyContent: 'center', marginBottom: 10 }}>
-              <Text style={{ fontSize: 24 }}>📁</Text>
+              <Feather name="upload-cloud" size={24} color="#a855f7" />
             </View>
             <Text style={{ color: '#fff', fontWeight: '800', fontSize: 15 }}>Tap to Upload</Text>
             <Text style={{ color: '#6b7280', fontSize: 11, marginTop: 4 }}>Supports PNG, JPG, WEBP</Text>
