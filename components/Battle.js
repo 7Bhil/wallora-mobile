@@ -1,75 +1,103 @@
-import { useState, useEffect } from 'react';
-import { View, Text, Image, TouchableOpacity, ActivityIndicator, Platform } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TouchableOpacity, ActivityIndicator, Dimensions } from 'react-native';
+import FastImage from 'react-native-fast-image';
 
-const API_BASE = Platform.OS === 'android' ? 'http://10.0.2.2:3000/api/wallpapers' : 'http://localhost:3000/api/wallpapers';
+const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://10.0.2.2:3000';
+const SCREEN_H = Dimensions.get('window').height;
 
 export default function Battle() {
   const [wallpapers, setWallpapers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [voted, setVoted] = useState(null);
 
   const fetchWallpapers = async () => {
     setLoading(true);
+    setVoted(null);
     try {
-      const res = await fetch(`${API_BASE}/battle`);
-      if (res.ok) {
-        setWallpapers(await res.json());
-      } else {
-        setWallpapers([]);
-      }
-    } catch (e) {
-      console.warn('Erreur réseau. Assurez-vous que le serveur tourne.', e);
-    }
+      const res = await fetch(`${API_URL}/api/wallpapers/battle`);
+      if (res.ok) setWallpapers(await res.json());
+      else setWallpapers([]);
+    } catch (e) { console.error(e); }
     setLoading(false);
   };
 
   useEffect(() => { fetchWallpapers(); }, []);
 
-  const handleVote = async (winnerId, loserId) => {
+  const handleVote = async (winnerId, loserId, side) => {
+    if (voted) return;
+    setVoted(side);
     try {
-      await fetch(`${API_BASE}/vote`, {
+      await fetch(`${API_URL}/api/wallpapers/vote`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ winnerId, loserId })
       });
-      fetchWallpapers();
-    } catch (e) {
-      console.error(e);
-    }
+    } catch (e) { console.error(e); }
+    setTimeout(() => fetchWallpapers(), 800);
   };
 
-  if (loading) return <View className="flex-1 items-center justify-center"><ActivityIndicator size="large" color="#3b82f6" /></View>;
-  
+  if (loading) return (
+    <View style={{ flex: 1, backgroundColor: '#0d0914', justifyContent: 'center', alignItems: 'center' }}>
+      <ActivityIndicator size="large" color="#a855f7" />
+      <Text style={{ color: '#6b7280', marginTop: 12, fontWeight: '700' }}>Preparing the Arena...</Text>
+    </View>
+  );
+
   if (wallpapers.length < 2) return (
-    <View className="flex-1 items-center justify-center p-4">
-      <Text className="text-red-500 font-bold text-center text-lg">Il faut au moins 2 images dans la base pour lancer un duel !</Text>
+    <View style={{ flex: 1, backgroundColor: '#0d0914', justifyContent: 'center', alignItems: 'center', padding: 32 }}>
+      <Text style={{ fontSize: 48, marginBottom: 16 }}>⚔️</Text>
+      <Text style={{ color: '#fff', fontWeight: '900', fontSize: 20, marginBottom: 8, textAlign: 'center' }}>Arena is Empty</Text>
+      <Text style={{ color: '#6b7280', textAlign: 'center', fontSize: 13, fontWeight: '500' }}>Upload at least 2 wallpapers in Studio to start battling.</Text>
     </View>
   );
 
   return (
-    <View className="flex-1 items-center pt-8">
-      <Text className="text-xl font-bold text-white mb-6">Quel est votre préféré ?</Text>
-      
-      <View className="w-full flex-col items-center gap-6 px-4">
-        {/* Image 1 */}
-        <TouchableOpacity 
-          activeOpacity={0.8}
-          className="w-full"
-          onPress={() => handleVote(wallpapers[0]._id, wallpapers[1]._id)}
-        >
-          <Image source={{ uri: wallpapers[0].url }} className="w-full h-48 rounded-xl border-4 border-transparent" resizeMode="cover" />
-        </TouchableOpacity>
-
-        <Text className="text-2xl font-black text-gray-400">VS</Text>
-
-        {/* Image 2 */}
-        <TouchableOpacity 
-          activeOpacity={0.8}
-          className="w-full"
-          onPress={() => handleVote(wallpapers[1]._id, wallpapers[0]._id)}
-        >
-          <Image source={{ uri: wallpapers[1].url }} className="w-full h-48 rounded-xl border-4 border-transparent" resizeMode="cover" />
-        </TouchableOpacity>
+    <View style={{ flex: 1, backgroundColor: '#0d0914' }}>
+      {/* Header */}
+      <View style={{ paddingTop: 20, paddingHorizontal: 20, paddingBottom: 12 }}>
+        <Text style={{ color: '#fff', fontWeight: '900', fontSize: 22, letterSpacing: -0.5 }}>Arena</Text>
+        <Text style={{ color: '#6b7280', fontSize: 12, fontWeight: '600' }}>Vote for the superior wallpaper</Text>
       </View>
+
+      {/* Left Wallpaper */}
+      <TouchableOpacity
+        activeOpacity={0.9}
+        onPress={() => handleVote(wallpapers[0]._id, wallpapers[1]._id, 'left')}
+        style={{
+          flex: 1, marginHorizontal: 12, marginBottom: 6, borderRadius: 24, overflow: 'hidden',
+          opacity: voted === 'right' ? 0.3 : 1,
+          borderWidth: voted === 'left' ? 3 : 0,
+          borderColor: '#a855f7',
+        }}
+      >
+        <View style={{ flex: 1, backgroundColor: '#1a0a2e' }}>
+          <View style={{ position: 'absolute', inset: 0, zIndex: 2, backgroundColor: 'rgba(0,0,0,0)', justifyContent: 'center', alignItems: 'center' }} />
+          <Text style={{ color: '#fff', fontWeight: '900', fontSize: 13, position: 'absolute', bottom: 14, left: 14, zIndex: 3, backgroundColor: 'rgba(0,0,0,0.5)', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20 }}>ELO {wallpapers[0].eloScore}</Text>
+        </View>
+      </TouchableOpacity>
+
+      {/* VS badge */}
+      <View style={{ alignItems: 'center', marginVertical: 4 }}>
+        <View style={{ backgroundColor: '#120820', borderWidth: 1, borderColor: '#3b1d6e', borderRadius: 99, paddingHorizontal: 16, paddingVertical: 6 }}>
+          <Text style={{ color: '#6b7280', fontWeight: '900', fontSize: 11, letterSpacing: 3 }}>VS</Text>
+        </View>
+      </View>
+
+      {/* Right Wallpaper */}
+      <TouchableOpacity
+        activeOpacity={0.9}
+        onPress={() => handleVote(wallpapers[1]._id, wallpapers[0]._id, 'right')}
+        style={{
+          flex: 1, marginHorizontal: 12, marginTop: 6, marginBottom: 12, borderRadius: 24, overflow: 'hidden',
+          opacity: voted === 'left' ? 0.3 : 1,
+          borderWidth: voted === 'right' ? 3 : 0,
+          borderColor: '#a855f7',
+        }}
+      >
+        <View style={{ flex: 1, backgroundColor: '#1a0a2e' }}>
+          <Text style={{ color: '#fff', fontWeight: '900', fontSize: 13, position: 'absolute', bottom: 14, left: 14, zIndex: 3, backgroundColor: 'rgba(0,0,0,0.5)', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20 }}>ELO {wallpapers[1].eloScore}</Text>
+        </View>
+      </TouchableOpacity>
     </View>
   );
 }

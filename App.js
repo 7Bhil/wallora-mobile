@@ -5,56 +5,77 @@ import Battle from './components/Battle';
 import Leaderboard from './components/Leaderboard';
 import Upload from './components/Upload';
 import AuthScreen from './src/screens/AuthScreen';
+import ProfileScreen from './src/screens/ProfileScreen';
 import { AuthProvider, AuthContext } from './src/context/AuthContext';
+
+const TABS = [
+  { id: 'battle',   label: 'Arena',     icon: '⚔️' },
+  { id: 'discover', label: 'Discovery', icon: '🔭' },
+  { id: 'upload',   label: 'Studio',    icon: '🎨' },
+  { id: 'profile',  label: 'Profile',   icon: '👤' },
+];
 
 function MainApp() {
   const [tab, setTab] = useState('battle');
-  const { user, loading, logout } = useContext(AuthContext);
+  const { user, loading } = useContext(AuthContext);
 
-  if (loading) {
-    return (
-      <View className="flex-1 bg-gray-900 justify-center items-center">
-        <ActivityIndicator size="large" color="#a855f7" />
-      </View>
-    );
-  }
+  if (loading) return (
+    <View style={{ flex: 1, backgroundColor: '#0d0914', justifyContent: 'center', alignItems: 'center' }}>
+      <ActivityIndicator size="large" color="#a855f7" />
+    </View>
+  );
 
-  if (!user) {
-    return <AuthScreen />;
-  }
+  if (!user) return <AuthScreen />;
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-900">
-      {/* Top Header */}
-      <View className="flex-row justify-between items-center px-4 py-3 bg-gray-800 border-b border-gray-700">
-        <Text className="text-xl font-black text-transparent text-purple-400">WallBattle ⚔️</Text>
-        <TouchableOpacity onPress={logout} className="bg-red-500/20 px-3 py-1 rounded-full">
-          <Text className="text-red-400 font-bold text-xs">Logout</Text>
-        </TouchableOpacity>
-      </View>
-
-      <View className="flex-1">
-        {tab === 'battle' && <Battle />}
-        {tab === 'leaderboard' && <Leaderboard />}
-        {tab === 'upload' && <Upload />}
-      </View>
-
-      {/* Simple Bottom Navigation */}
-      <View className="flex-row bg-gray-800 h-[70px] items-center justify-around pb-2 shadow-lg">
-        <TouchableOpacity onPress={() => setTab('battle')} className={`px-4 py-2 flex-col items-center rounded-lg ${tab === 'battle' ? 'bg-purple-600/20' : ''}`}>
-          <Text className={`font-bold ${tab === 'battle' ? 'text-purple-400' : 'text-gray-400'}`}>⚔️ Jouer</Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity onPress={() => setTab('leaderboard')} className={`px-4 py-2 flex-col items-center rounded-lg ${tab === 'leaderboard' ? 'bg-blue-600/20' : ''}`}>
-          <Text className={`font-bold ${tab === 'leaderboard' ? 'text-blue-400' : 'text-gray-400'}`}>🏆 Top</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity onPress={() => setTab('upload')} className={`px-4 py-2 flex-col items-center rounded-lg ${tab === 'upload' ? 'bg-emerald-600/20' : ''}`}>
-          <Text className={`font-bold ${tab === 'upload' ? 'text-emerald-400' : 'text-gray-400'}`}>+ Upload</Text>
-        </TouchableOpacity>
-      </View>
-
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#0d0914' }}>
       <StatusBar style="light" />
+
+      {/* Content */}
+      <View style={{ flex: 1 }}>
+        {tab === 'battle'   && <Battle />}
+        {tab === 'discover' && <Leaderboard />}
+        {tab === 'upload'   && <Upload />}
+        {tab === 'profile'  && <ProfileScreen />}
+      </View>
+
+      {/* Bottom Navigation */}
+      <View style={{
+        flexDirection: 'row',
+        backgroundColor: '#0a0710',
+        borderTopWidth: 1,
+        borderTopColor: '#1f0f35',
+        height: 70,
+        paddingBottom: 8,
+        paddingHorizontal: 8,
+      }}>
+        {TABS.map(t => {
+          const isActive = tab === t.id;
+          return (
+            <TouchableOpacity
+              key={t.id}
+              onPress={() => setTab(t.id)}
+              style={{
+                flex: 1,
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderRadius: 16,
+                backgroundColor: isActive ? '#2d1a4e' : 'transparent',
+                marginHorizontal: 3,
+                paddingVertical: 6,
+              }}
+            >
+              <Text style={{ fontSize: 18, marginBottom: 2 }}>{t.icon}</Text>
+              <Text style={{
+                color: isActive ? '#c084fc' : '#6b7280',
+                fontSize: 9,
+                fontWeight: '700',
+                letterSpacing: 0.5,
+              }}>{t.label.toUpperCase()}</Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
     </SafeAreaView>
   );
 }
