@@ -12,8 +12,8 @@ import { AuthProvider, AuthContext } from './src/context/AuthContext';
 
 const TABS = [
   { id: 'battle',   label: 'Arena',     icon: 'crosshairs' },
-  { id: 'discover', label: 'Discovery', icon: 'compass' },
-  { id: 'upload',   label: 'Studio',    icon: 'aperture' },
+  { id: 'upload',   label: 'Upload',    icon: 'upload-cloud' },
+  { id: 'leaderboard', label: 'Ranking', icon: 'bar-chart-2' },
   { id: 'profile',  label: 'Profile',   icon: 'user' },
 ];
 
@@ -35,10 +35,10 @@ function MainApp() {
 
       {/* Content */}
       <View style={{ flex: 1 }}>
-        {tab === 'battle'   && <Battle />}
-        {tab === 'discover' && <Leaderboard />}
-        {tab === 'upload'   && <Upload />}
-        {tab === 'profile'  && <ProfileScreen />}
+        {tab === 'battle'      && <Battle />}
+        {tab === 'upload'      && <Upload />}
+        {tab === 'leaderboard' && <Leaderboard />}
+        {tab === 'profile'     && <ProfileScreen />}
       </View>
 
       {/* Bottom Navigation */}
