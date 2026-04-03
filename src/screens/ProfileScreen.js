@@ -15,6 +15,11 @@ export default function ProfileScreen() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('wallpapers');
 
+  const optimizeImage = (url) => {
+    if (!url || !url.includes('cloudinary.com')) return url;
+    return url.replace('/upload/', '/upload/q_auto,f_auto,w_600/');
+  };
+
   useEffect(() => {
     fetch(`${API_URL}/api/users/profile`, {
       headers: { Authorization: `Bearer ${token}` }
@@ -106,7 +111,7 @@ export default function ProfileScreen() {
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 16, gap: 12, paddingBottom: 120 }}>
           {wallpapers.map((wp, index) => (
             <View key={wp._id} style={{ width: (SCREEN_W - 44) / 2, borderRadius: 20, overflow: 'hidden', backgroundColor: '#1a0a2e', aspectRatio: 0.75, position: 'relative' }}>
-              <Image source={{ uri: wp.url }} style={{ width: '100%', height: '100%' }} resizeMode="cover" />
+              <Image source={{ uri: optimizeImage(wp.url) }} style={{ width: '100%', height: '100%' }} resizeMode="cover" />
               <View style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.3)' }} />
               <View style={{ position: 'absolute', top: 8, left: 8, backgroundColor: 'rgba(0,0,0,0.6)', borderRadius: 20, paddingHorizontal: 8, paddingVertical: 3 }}>
                 <Text style={{ color: '#9ca3af', fontSize: 8, fontWeight: '700', letterSpacing: 1 }}>RANK #{index + 1}</Text>

@@ -10,6 +10,11 @@ export default function Battle() {
   const [loading, setLoading] = useState(true);
   const [voted, setVoted] = useState(null);
 
+  const optimizeImage = (url) => {
+    if (!url || !url.includes('cloudinary.com')) return url;
+    return url.replace('/upload/', '/upload/q_auto,f_auto,w_800/');
+  };
+
   const fetchWallpapers = async () => {
     setLoading(true);
     setVoted(null);
@@ -70,7 +75,8 @@ export default function Battle() {
           borderColor: '#a855f7',
         }}
       >
-        <View style={{ flex: 1, backgroundColor: '#1a0a2e' }}>
+        <Image source={{ uri: optimizeImage(wallpapers[0].url) }} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }} resizeMode="cover" />
+        <View style={{ flex: 1, backgroundColor: 'rgba(26,10,46,0.3)' }}>
           <View style={{ position: 'absolute', inset: 0, zIndex: 2, backgroundColor: 'rgba(0,0,0,0)', justifyContent: 'center', alignItems: 'center' }} />
           <Text style={{ color: '#fff', fontWeight: '900', fontSize: 13, position: 'absolute', bottom: 14, left: 14, zIndex: 3, backgroundColor: 'rgba(0,0,0,0.5)', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20 }}>ELO {wallpapers[0].eloScore}</Text>
         </View>
@@ -94,7 +100,8 @@ export default function Battle() {
           borderColor: '#a855f7',
         }}
       >
-        <View style={{ flex: 1, backgroundColor: '#1a0a2e' }}>
+        <Image source={{ uri: optimizeImage(wallpapers[1].url) }} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }} resizeMode="cover" />
+        <View style={{ flex: 1, backgroundColor: 'rgba(26,10,46,0.3)' }}>
           <Text style={{ color: '#fff', fontWeight: '900', fontSize: 13, position: 'absolute', bottom: 14, left: 14, zIndex: 3, backgroundColor: 'rgba(0,0,0,0.5)', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20 }}>ELO {wallpapers[1].eloScore}</Text>
         </View>
       </TouchableOpacity>

@@ -7,6 +7,12 @@ export default function Leaderboard() {
   const [leaderboard, setLeaderboard] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // Compression helper
+  const optimizeImage = (url) => {
+    if (!url || !url.includes('cloudinary.com')) return url;
+    return url.replace('/upload/', '/upload/q_auto,f_auto,w_600/');
+  };
+
   useEffect(() => {
     const fetchLeaderboard = async () => {
       try {
@@ -34,7 +40,7 @@ export default function Leaderboard() {
             <View className="absolute top-1 left-1 bg-black/70 px-2 rounded z-10">
               <Text className="text-white font-bold text-xs">#{index + 1}</Text>
             </View>
-            <Image source={{ uri: wp.url }} className="w-full h-32" resizeMode="cover" />
+            <Image source={{ uri: optimizeImage(wp.url) }} className="w-full h-32" resizeMode="cover" />
             <View className="p-2 items-center">
               <Text className="text-blue-300 font-bold text-sm">Elo: {wp.eloScore}</Text>
               <Text className="text-gray-400 text-xs">{wp.wins}V / {wp.matches}M</Text>
