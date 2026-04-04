@@ -48,8 +48,27 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const googleLogin = async (idToken) => {
+    try {
+      const res = await fetch(`${process.env.EXPO_PUBLIC_API_URL || 'http://10.0.2.2:3000'}/api/auth/google`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ idToken })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        await login(data.token, data.user);
+        return { success: true };
+      } else {
+        return { success: false, error: data.error };
+      }
+    } catch (e) {
+      return { success: false, error: 'Serveur injoignable.' };
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ token, user, login, logout, loading }}>
+    <AuthContext.Provider value={{ token, user, login, logout, googleLogin, loading }}>
       {children}
     </AuthContext.Provider>
   );

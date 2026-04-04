@@ -1,6 +1,10 @@
-import React, { useState, useContext } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native';
+import React, { useState, useContext, useEffect } from 'react';
+import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, Image } from 'react-native';
+import * as Google from 'expo-auth-session/providers/google';
+import * as WebBrowser from 'expo-web-browser';
 import { AuthContext } from '../context/AuthContext';
+
+WebBrowser.maybeCompleteAuthSession();
 
 // Variable d'environnement (si tu testes sur ton tel physique, remplace "10.0.2.2" par ton IP locale style 192.168.1.XX)
 // Sinon "10.0.2.2" c'est l'IP par défaut pour atteindre le localhost depuis l'émulateur Android.
@@ -15,7 +19,26 @@ export default function AuthScreen() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   
-  const { login } = useContext(AuthContext);
+  const { login, googleLogin } = useContext(AuthContext);
+
+  const [request, response, promptAsync] = Google.useAuthRequest({
+    androidClientId: process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID_ANDROID,
+    webClientId: process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID_WEB,
+  });
+
+  useEffect(() => {
+    if (response?.type === 'success') {
+      const { authentication } = response;
+      handleGoogleLogin(authentication.idToken || authentication.accessToken);
+    }
+  }, [response]);
+
+  const handleGoogleLogin = async (token) => {
+    setLoading(true);
+    const result = await googleLogin(token);
+    if (!result.success) setError(result.error);
+    setLoading(false);
+  };
 
   const handleSubmit = async () => {
     setError('');
@@ -96,6 +119,25 @@ export default function AuthScreen() {
           {loading ? <ActivityIndicator color="white" /> : (
             <Text className="text-white font-bold text-lg">{isLogin ? 'Sign In' : 'Create Account'}</Text>
           )}
+        </TouchableOpacity>
+
+        <View className="flex-row items-center my-6">
+          <View className="flex-1 h-[1px] bg-gray-700" />
+          <Text className="text-gray-500 px-4 text-[10px] font-bold tracking-widest">OR CONTINUE WITH</Text>
+          <View className="flex-1 h-[1px] bg-gray-700" />
+        </View>
+
+        <TouchableOpacity 
+          onPress={() => promptAsync()}
+          disabled={!request || loading}
+          className="bg-white rounded-xl py-4 flex-row items-center justify-center shadow-lg"
+        >
+          <Image 
+            source={{ uri: 'https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg' }} 
+            className="w-5 h-5 mr-3"
+            resizeMode="contain"
+          />
+          <Text className="text-gray-900 font-bold text-lg">Google</Text>
         </TouchableOpacity>
 
         <TouchableOpacity onPress={() => setIsLogin(!isLogin)} className="mt-8 items-center">

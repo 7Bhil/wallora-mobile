@@ -3,6 +3,7 @@ import {
   View, Text, ScrollView, Image, TouchableOpacity, 
   ActivityIndicator, FlatList, Dimensions, Alert, TextInput
 } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
 import Feather from '@expo/vector-icons/Feather';
 import { AuthContext } from '../context/AuthContext';
 
@@ -16,6 +17,7 @@ export default function ProfileScreen({ setTab }) {
   const [activeTab, setActiveTab] = useState('wallpapers');
   const [isEditing, setIsEditing] = useState(false);
   const [newUsername, setNewUsername] = useState(user?.username || '');
+  const [newAvatar, setNewAvatar] = useState(null);
 
   const optimizeImage = (url) => {
     if (!url || !url.includes('cloudinary.com')) return url;
@@ -40,27 +42,50 @@ export default function ProfileScreen({ setTab }) {
     fetchProfile();
   }, [token]);
 
+  const pickAvatar = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true, aspect: [1, 1], quality: 0.5,
+    });
+    if (!result.canceled) setNewAvatar(result.assets[0]);
+  };
+
   const handleUpdateProfile = async () => {
-    if (!newUsername.trim()) return;
+    if (!newUsername.trim() && !newAvatar) return;
+    setLoading(true);
     try {
+      const formData = new FormData();
+      if (newUsername.trim()) formData.append('username', newUsername);
+      if (newAvatar) {
+        const filename = newAvatar.uri.split('/').pop();
+        const match = /\.(\w+)$/.exec(filename);
+        formData.append('avatar', { 
+          uri: newAvatar.uri, 
+          name: filename, 
+          type: match ? `image/${match[1]}` : 'image' 
+        });
+      }
+
       const res = await fetch(`${API_URL}/api/users/profile`, {
         method: 'PUT',
         headers: {
-          'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`
         },
-        body: JSON.stringify({ username: newUsername })
+        body: formData
       });
       const data = await res.json();
       if (res.ok) {
-        await login(token, { ...user, username: newUsername });
+        await login(token, data.user);
         setIsEditing(false);
+        setNewAvatar(null);
         fetchProfile();
         Alert.alert('Succès', 'Profil mis à jour !');
       } else {
+        setLoading(false);
         Alert.alert('Erreur', data.error || 'Mise à jour échouée');
       }
     } catch (e) {
+      setLoading(false);
       Alert.alert('Erreur', 'Connexion impossible');
     }
   };
@@ -118,14 +143,23 @@ export default function ProfileScreen({ setTab }) {
         {/* Avatar + Info */}
         <View style={{ alignItems: 'center', marginTop: 24, marginBottom: 20 }}>
           <View style={{ position: 'relative', marginBottom: 12 }}>
-            <View style={{ width: 90, height: 90, borderRadius: 45, borderWidth: 3, borderColor: '#a855f7', overflow: 'hidden', backgroundColor: '#1a0a2e' }}>
+            <TouchableOpacity 
+              disabled={!isEditing} 
+              onPress={pickAvatar}
+              style={{ width: 90, height: 90, borderRadius: 45, borderWidth: 3, borderColor: '#a855f7', overflow: 'hidden', backgroundColor: '#1a0a2e' }}
+            >
               <Image
-                source={{ uri: `https://api.dicebear.com/7.x/notionists/svg?seed=${user?.username}` }}
+                source={{ uri: newAvatar?.uri || user?.avatarUrl || `https://api.dicebear.com/7.x/notionists/svg?seed=${user?.username}` }}
                 style={{ width: '100%', height: '100%' }}
               />
-            </View>
-            <View style={{ position: 'absolute', bottom: -6, left: '50%', marginLeft: -30, backgroundColor: '#7c3aed', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 99 }}>
-              <Text style={{ color: '#fff', fontSize: 8, fontWeight: '900', letterSpacing: 1 }}>LEVEL 15</Text>
+              {isEditing && (
+                <View style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.4)', alignItems: 'center', justifyContent: 'center' }}>
+                  <Feather name="camera" size={20} color="#fff" />
+                </View>
+              )}
+            </TouchableOpacity>
+            <View style={{ position: 'absolute', bottom: -6, left: '50%', marginLeft: -30, backgroundColor: user?.role === 'admin' ? '#fcd34d' : '#7c3aed', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 99 }}>
+              <Text style={{ color: user?.role === 'admin' ? '#000' : '#fff', fontSize: 8, fontWeight: '900', letterSpacing: 1 }}>{user?.role === 'admin' ? 'ADMIN' : 'LEVEL 15'}</Text>
             </View>
           </View>
 
@@ -157,8 +191,8 @@ export default function ProfileScreen({ setTab }) {
           
           <Text style={{ color: '#6b7280', fontSize: 13, marginTop: 2, fontWeight: '500' }}>@{(user?.username || 'curator').toLowerCase().replace(/ /g, '_')}</Text>
 
-          <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8, backgroundColor: '#1a0a2e', paddingHorizontal: 12, paddingVertical: 5, borderRadius: 99, borderWidth: 1, borderColor: '#3b1d6e' }}>
-            <Text style={{ color: '#9ca3af', fontSize: 10, fontWeight: '700', letterSpacing: 1 }}>✦ LEVEL 15 CURATOR</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8, backgroundColor: '#1a0a2e', paddingHorizontal: 12, paddingVertical: 5, borderRadius: 99, borderWidth: 1, borderColor: user?.role === 'admin' ? '#fcd34d' : '#3b1d6e' }}>
+            <Text style={{ color: user?.role === 'admin' ? '#fcd34d' : '#9ca3af', fontSize: 10, fontWeight: '700', letterSpacing: 1 }}>✦ {user?.role === 'admin' ? 'CROWN' : 'LEVEL 15'} CURATOR</Text>
           </View>
         </View>
 
