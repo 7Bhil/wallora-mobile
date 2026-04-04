@@ -17,12 +17,21 @@ export default function Battle() {
   const fetchWallpapers = async () => {
     setLoading(true);
     setVoted(null);
+    
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15000); // 15s timeout
+
     try {
-      const res = await fetch(`${API_URL}/api/wallpapers/battle`);
+      const res = await fetch(`${API_URL}/api/wallpapers/battle`, { signal: controller.signal });
+      clearTimeout(timeout);
       if (res.ok) setWallpapers(await res.json());
       else setWallpapers([]);
-    } catch (e) { console.error(e); }
-    setLoading(false);
+    } catch (e) { 
+      console.error('Fetch error:', e); 
+      setWallpapers([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => { fetchWallpapers(); }, []);
