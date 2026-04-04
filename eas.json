@@ -11,6 +11,11 @@
     "preview": {
       "android": {
         "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://wallora-server.onrender.com",
+        "EXPO_PUBLIC_GOOGLE_CLIENT_ID_WEB": "382101857891-hom2o5johc5f9s2hpdegbfkbflgrnr8k.apps.googleusercontent.com",
+        "EXPO_PUBLIC_GOOGLE_CLIENT_ID_ANDROID": "382101857891-c9ceunai9lvg4un0mrehnreu7tl7ad5g.apps.googleusercontent.com"
       }
     },
     "production": {}
