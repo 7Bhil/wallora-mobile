@@ -68,7 +68,10 @@ export default function Battle() {
     <View style={{ flex: 1, backgroundColor: '#0d0914' }}>
       {/* Header */}
       <View style={{ paddingTop: 20, paddingHorizontal: 20, paddingBottom: 12 }}>
-        <Text style={{ color: '#fff', fontWeight: '900', fontSize: 22, letterSpacing: -0.5 }}>Arena</Text>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Text style={{ color: '#fff', fontWeight: '900', fontSize: 22, letterSpacing: -0.5 }}>Arena</Text>
+          <Text style={{ color: '#4b5563', fontSize: 10, fontWeight: '700' }}>API: {API_URL.replace('https://', '')}</Text>
+        </View>
         <Text style={{ color: '#6b7280', fontSize: 12, fontWeight: '600' }}>Vote for the superior wallpaper</Text>
       </View>
 
