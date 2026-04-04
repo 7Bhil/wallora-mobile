@@ -99,14 +99,14 @@ export default function AuthScreen() {
         />
         <View className="relative w-full mb-6">
           <TextInput 
-            className="bg-black/30 text-white px-4 py-3 rounded-xl border border-white/5 w-full flex-1 pr-12"
-            placeholder="Password" placeholderTextColor="#6b7280"
+            className="bg-black/40 text-white px-4 py-4 rounded-xl border border-white/10 w-full pr-12"
+            placeholder="Password" placeholderTextColor="#9ca3af"
             secureTextEntry={!showPassword}
             value={password} onChangeText={setPassword}
           />
           <TouchableOpacity 
             onPress={() => setShowPassword(!showPassword)}
-            className="absolute right-0 h-full px-4 justify-center"
+            className="absolute right-0 top-0 bottom-0 px-4 justify-center"
           >
             <Text className="text-gray-400 text-lg">{showPassword ? '🫣' : '👁️'}</Text>
           </TouchableOpacity>
