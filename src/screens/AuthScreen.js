@@ -8,7 +8,7 @@ WebBrowser.maybeCompleteAuthSession();
 
 // Variable d'environnement (si tu testes sur ton tel physique, remplace "10.0.2.2" par ton IP locale style 192.168.1.XX)
 // Sinon "10.0.2.2" c'est l'IP par défaut pour atteindre le localhost depuis l'émulateur Android.
-const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://10.0.2.2:3000';
+import { API_URL } from '../config';
 
 export default function AuthScreen() {
   const [isLogin, setIsLogin] = useState(true);

@@ -4,7 +4,7 @@ import * as ImagePicker from 'expo-image-picker';
 import Feather from '@expo/vector-icons/Feather';
 import { AuthContext } from '../src/context/AuthContext';
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://10.34.132.51:3000';
+import { API_URL } from '../src/config';
 
 const SUGGESTED_TAGS = ['#Neon', '#Cyber', '#Dark', '#4K', '#Space', '#Nature'];
 

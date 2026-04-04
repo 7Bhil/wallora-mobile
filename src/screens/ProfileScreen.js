@@ -7,7 +7,7 @@ import * as ImagePicker from 'expo-image-picker';
 import Feather from '@expo/vector-icons/Feather';
 import { AuthContext } from '../context/AuthContext';
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://10.34.132.51:3000';
+import { API_URL } from '../config';
 const SCREEN_W = Dimensions.get('window').width;
 
 export default function ProfileScreen({ setTab }) {

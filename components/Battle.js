@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator, Dimensions, Image } from 'react-native';
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://10.0.2.2:3000';
+import { API_URL } from '../src/config';
 const SCREEN_H = Dimensions.get('window').height;
 
 export default function Battle() {

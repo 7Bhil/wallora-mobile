@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { View, Text, ScrollView, Image, ActivityIndicator, Platform, TouchableOpacity } from 'react-native';
 
-const API_BASE = Platform.OS === 'android' ? 'http://10.34.132.51:3000/api' : 'http://localhost:3000/api';
+import { API_URL } from '../src/config';
+const API_BASE = `${API_URL}/api`;
 
 export default function Leaderboard() {
   const [activeTab, setActiveTab] = useState('images'); // 'images' or 'users'
